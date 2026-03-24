@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="NatsuFox root site social preview">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1120" />
+      <stop offset="100%" stop-color="#172554" />
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.92" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.82" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="1030" cy="90" r="170" fill="#1d4ed8" fill-opacity="0.20" />
+  <circle cx="160" cy="560" r="220" fill="#0ea5e9" fill-opacity="0.12" />
+  <rect x="72" y="72" width="1056" height="486" rx="36" fill="url(#panel)" stroke="#334155" />
+  <text x="110" y="165" fill="#93c5fd" font-size="28" font-family="'IBM Plex Sans', 'Segoe UI', sans-serif" letter-spacing="5">ROOT DOMAIN HUB</text>
+  <text x="110" y="255" fill="#f8fafc" font-size="74" font-family="'Fraunces', Georgia, serif" font-weight="700">NatsuFox</text>
+  <text x="110" y="335" fill="#cbd5e1" font-size="34" font-family="'IBM Plex Sans', 'Segoe UI', sans-serif">AI-native agent tools, knowledge workflows,</text>
+  <text x="110" y="382" fill="#cbd5e1" font-size="34" font-family="'IBM Plex Sans', 'Segoe UI', sans-serif">and research systems with clear entry points.</text>
+  <rect x="110" y="440" width="220" height="58" rx="18" fill="#111827" stroke="#475569" />
+  <text x="145" y="478" fill="#f8fafc" font-size="24" font-family="'IBM Plex Sans', 'Segoe UI', sans-serif">Tapestry</text>
+  <rect x="350" y="440" width="240" height="58" rx="18" fill="#111827" stroke="#475569" />
+  <text x="385" y="478" fill="#f8fafc" font-size="24" font-family="'IBM Plex Sans', 'Segoe UI', sans-serif">A-Stockit</text>
+  <path d="M915 185h118v118H915z" fill="none" />
+  <path d="M938 286V164h33l49 64v-64h33v122h-33l-49-64v64Z" fill="#f8fafc" />
+  <circle cx="1050" cy="164" r="23" fill="url(#accent)" />
+</svg>

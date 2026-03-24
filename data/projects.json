@@ -1,0 +1,60 @@
+[
+  {
+    "slug": "tapestry",
+    "name": "Tapestry",
+    "title": "Tapestry by NatsuFox",
+    "tagline": "AI-native web knowledge base and content intelligence workflow",
+    "summary": "Capture multi-platform web content, normalize it into a reusable feed layer, and publish structured knowledge assets through an agent-native workflow.",
+    "category": "Knowledge Systems",
+    "repo_url": "https://github.com/NatsuFox/Tapestry",
+    "live_url": "https://natsufox.github.io/Tapestry/",
+    "page_url": "https://natsufox.github.io/projects/tapestry/",
+    "keywords": [
+      "AI-native web intelligence",
+      "web knowledge base",
+      "agent skill bundle",
+      "content capture",
+      "knowledge synthesis"
+    ],
+    "audience": [
+      "researchers",
+      "content curators",
+      "developers",
+      "knowledge workers"
+    ],
+    "needs": [
+      "Turn URLs into a knowledge base",
+      "Capture multi-platform discussions",
+      "Publish structured research outputs"
+    ]
+  },
+  {
+    "slug": "a-stockit",
+    "name": "A-Stockit",
+    "title": "A-Stockit by NatsuFox",
+    "tagline": "AI-native A-share research and decision workflow",
+    "summary": "Transform scattered A-share market data into organized, actionable investment research with an agent-native workflow for watchlists, analysis, and decision support.",
+    "category": "Quant Research",
+    "repo_url": "https://github.com/NatsuFox/A-Stockit",
+    "live_url": "",
+    "page_url": "https://natsufox.github.io/projects/a-stockit/",
+    "keywords": [
+      "A-share research workflow",
+      "AI-native investment workflow",
+      "agent stock research",
+      "China A-share analysis",
+      "decision support"
+    ],
+    "audience": [
+      "investors",
+      "active traders",
+      "quant researchers",
+      "framework developers"
+    ],
+    "needs": [
+      "Research China A-shares with AI",
+      "Build repeatable market workflows",
+      "Manage watchlists and decision outputs"
+    ]
+  }
+]

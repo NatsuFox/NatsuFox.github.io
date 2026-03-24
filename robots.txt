@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://natsufox.github.io/sitemap.xml
