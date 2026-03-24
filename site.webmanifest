@@ -1,0 +1,17 @@
+{
+  "name": "NatsuFox",
+  "short_name": "NatsuFox",
+  "description": "AI-native agent tools, knowledge workflows, and research systems with clear project entry points.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
