@@ -240,52 +240,31 @@ input {
 }
 
 .hero-circuit {
+  display: block;
+  grid-template-columns: none;
+  gap: 0;
+  padding: 0;
   position: relative;
   overflow: hidden;
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  padding: clamp(1.7rem, 3.3vw, 2.75rem) 0;
   border-radius: 0;
-  border-left: 0;
-  border-right: 0;
-  border-top-color: rgba(125, 211, 252, 0.13);
-  border-bottom-color: rgba(125, 211, 252, 0.10);
-  background:
-    linear-gradient(180deg, rgba(3, 7, 16, 0.97), rgba(5, 9, 18, 0.93)),
-    radial-gradient(ellipse at 18% 0%, rgba(56, 189, 248, 0.13), transparent 36%),
-    radial-gradient(ellipse at 82% 0%, rgba(37, 99, 235, 0.10), transparent 34%),
-    radial-gradient(ellipse at 50% 100%, rgba(14, 165, 233, 0.06), transparent 42%);
-  box-shadow:
-    inset 0 1px 0 rgba(125, 211, 252, 0.10),
-    inset 0 -1px 0 rgba(56, 189, 248, 0.06);
+  border: 0;
+  background: #010608;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .hero-circuit::before,
 .hero-circuit::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.hero-circuit::before {
-  background:
-    linear-gradient(rgba(125, 211, 252, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(125, 211, 252, 0.055) 1px, transparent 1px);
-  background-size: 4.25rem 4.25rem;
-  opacity: 0.45;
-}
-
-.hero-circuit::after {
-  background:
-    linear-gradient(90deg, rgba(125, 211, 252, 0.07), transparent 20%, transparent 80%, rgba(56, 189, 248, 0.05)),
-    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 30%);
+  content: none;
 }
 
 .hero-circuit-frame {
   position: relative;
   z-index: 1;
-  width: min(1760px, calc(100vw - 1rem));
+  width: 100%;
   margin: 0 auto;
   display: block;
 }
@@ -367,41 +346,12 @@ input {
 .hero-board {
   position: relative;
   min-height: min(88vh, 60rem);
-  border-radius: 2rem;
-  border: 1px solid rgba(196, 242, 255, 0.18);
-  background:
-    linear-gradient(180deg, rgba(228, 244, 255, 0.08), rgba(228, 244, 255, 0.02)),
-    linear-gradient(180deg, rgba(7, 14, 28, 0.76), rgba(3, 8, 18, 0.86)),
-    radial-gradient(ellipse at 50% 42%, rgba(155, 227, 255, 0.10), transparent 42%),
-    radial-gradient(ellipse at 18% 16%, rgba(255, 255, 255, 0.06), transparent 30%),
-    radial-gradient(ellipse at 80% 76%, rgba(126, 214, 255, 0.09), transparent 28%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(6, 12, 24, 0.34),
-    inset 0 0 0 1px rgba(194, 240, 255, 0.06),
-    0 32px 72px rgba(2, 6, 23, 0.36),
-    0 0 0 1px rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(34px) saturate(170%);
-  -webkit-backdrop-filter: blur(34px) saturate(170%);
-}
-
-.hero-board::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 6;
-  width: 34%;
-  background: linear-gradient(108deg, transparent, rgba(255,255,255,0.15) 48%, transparent);
-  mix-blend-mode: screen;
-  animation: glass-shimmer 8s ease-in-out infinite;
-  animation-delay: -2.4s;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-board::before { animation: none; }
+  border-radius: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .hero-board-surface {
@@ -414,24 +364,7 @@ input {
 
 .hero-board-surface::before,
 .hero-board-surface::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.hero-board-surface::before {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.10), transparent 18%, transparent 78%, rgba(255, 255, 255, 0.04)),
-    linear-gradient(90deg, rgba(185, 241, 255, 0.05), transparent 18%, transparent 82%, rgba(185, 241, 255, 0.03));
-}
-
-.hero-board-surface::after {
-  background:
-    radial-gradient(ellipse at 50% 46%, rgba(196, 244, 255, 0.10), transparent 34%),
-    linear-gradient(135deg, transparent 16%, rgba(255, 255, 255, 0.11) 30%, transparent 44%),
-    linear-gradient(315deg, transparent 20%, rgba(143, 226, 255, 0.06) 34%, transparent 48%);
-  animation: board-glow-pulse 6s ease-in-out infinite;
+  content: none;
 }
 
 .board-halo {
