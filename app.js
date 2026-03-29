@@ -51,10 +51,14 @@ if (circuitBoard) {
 
     const signalCanvas = document.createElement('canvas');
     const bloomCanvas = document.createElement('canvas');
+    const noiseCanvas = document.createElement('canvas');
+    const vignetteCanvas = document.createElement('canvas');
     const signalContext = signalCanvas.getContext('2d');
     const bloomContext = bloomCanvas.getContext('2d');
+    const noiseContext = noiseCanvas.getContext('2d');
+    const vignetteContext = vignetteCanvas.getContext('2d');
 
-    if (!signalContext || !bloomContext) {
+    if (!signalContext || !bloomContext || !noiseContext || !vignetteContext) {
       throw new Error('Signal surface canvases could not be initialized.');
     }
 
@@ -95,6 +99,9 @@ if (circuitBoard) {
       reduced: prefersReducedMotion.matches,
       startedAt: performance.now(),
       lastRecycleAt: 0,
+      lastNoiseTime: -999,
+      curvature: 0,
+      scanlinePattern: null,
     };
 
     const scaleMetric = (value) => value * scene.scale;
@@ -111,6 +118,31 @@ if (circuitBoard) {
       targetCanvas.width = Math.max(1, Math.round(scene.width));
       targetCanvas.height = Math.max(1, Math.round(scene.height));
       targetContext.setTransform(1, 0, 0, 1, 0, 0);
+    };
+
+    const buildScanlinePattern = () => {
+      const patCanvas = document.createElement('canvas');
+      patCanvas.width = 1;
+      patCanvas.height = 3;
+      const patCtx = patCanvas.getContext('2d');
+      patCtx.fillStyle = 'rgba(0,0,0,0.12)';
+      patCtx.fillRect(0, 2, 1, 1);
+      scene.scanlinePattern = context.createPattern(patCanvas, 'repeat') || null;
+    };
+
+    const buildVignetteCache = () => {
+      vignetteCanvas.width = Math.max(1, Math.round(scene.width));
+      vignetteCanvas.height = Math.max(1, Math.round(scene.height));
+      const vCtx = vignetteContext;
+      vCtx.clearRect(0, 0, scene.width, scene.height);
+      const vignette = vCtx.createRadialGradient(
+        scene.width * 0.5, scene.height * 0.5, scene.width * 0.2,
+        scene.width * 0.5, scene.height * 0.5, scene.width * 0.68
+      );
+      vignette.addColorStop(0, 'rgba(255,255,255,0)');
+      vignette.addColorStop(1, 'rgba(0,0,0,0.52)');
+      vCtx.fillStyle = vignette;
+      vCtx.fillRect(0, 0, scene.width, scene.height);
     };
 
     const clearContext = (targetContext) => {
@@ -231,6 +263,10 @@ if (circuitBoard) {
       syncMainCanvas();
       syncOffscreenCanvas(signalCanvas, signalContext);
       syncOffscreenCanvas(bloomCanvas, bloomContext);
+      syncOffscreenCanvas(noiseCanvas, noiseContext);
+      scene.lastNoiseTime = -999;
+      buildScanlinePattern();
+      buildVignetteCache();
       panels.forEach((panel) => {
         if (panel.active) {
           positionPanel(panel);
@@ -412,52 +448,101 @@ if (circuitBoard) {
     };
 
     const drawNoiseField = (time) => {
-      signalContext.fillStyle = '#061434';
-      signalContext.fillRect(0, 0, scene.width, scene.height);
+      const cx = scene.width * 0.5;
+      const cy = scene.height * 0.5;
+      const speed = 0.00028;
+      const scroll = (time * speed) % 1;
 
-      const aura = signalContext.createRadialGradient(scene.width * 0.5, scene.height * 0.5, scene.width * 0.08, scene.width * 0.5, scene.height * 0.5, scene.width * 0.62);
-      aura.addColorStop(0, 'rgba(140, 210, 255, 0.12)');
-      aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      signalContext.fillStyle = aura;
-      signalContext.fillRect(0, 0, scene.width, scene.height);
+      noiseContext.fillStyle = '#000d1a';
+      noiseContext.fillRect(0, 0, scene.width, scene.height);
 
-      const cellWidth = Math.max(7, scaleMetric(9.5));
-      const cellHeight = Math.max(10, scaleMetric(13));
-      const cols = Math.max(60, Math.floor(scene.width / cellWidth));
-      const rows = Math.max(34, Math.floor(scene.height / cellHeight));
-      const offsetX = (scene.width - cols * cellWidth) / 2;
-      const offsetY = (scene.height - rows * cellHeight) / 2;
+      const layers = 32;
+      const baseSize = Math.round(scaleMetric(17));
+      const tick = Math.floor(time * 0.05);
 
-      signalContext.font = `${Math.round(cellHeight * 0.94)}px ${monoFont}`;
-      signalContext.textBaseline = 'top';
+      // Radial rays from vanishing point (center) to screen boundary.
+      // Each ray is one sequence of glyphs extending to the far edge.
+      const hRays = 18;
+      const vRays = 10;
+      const rays = [];
 
-      for (let row = 0; row < rows; row += 1) {
-        const ny = row / Math.max(rows - 1, 1);
-        for (let col = 0; col < cols; col += 1) {
-          const nx = col / Math.max(cols - 1, 1);
-          const wave =
-            Math.sin(nx * 18 + time * 0.0016) +
-            Math.cos(ny * 21 - time * 0.0012) +
-            Math.sin((nx + ny) * 14 + time * 0.0021);
-          const radial = Math.hypot(nx - 0.5, ny - 0.5);
-          const drift = Math.sin(col * 0.17 + row * 0.11 + time * 0.0015);
-          const glyphIndex = Math.abs(Math.floor((wave + drift + radial * 4) * 1000)) % backgroundGlyphs.length;
-          const glyph = backgroundGlyphs[glyphIndex];
-          const alpha = clamp(0.06 + (wave + 3) / 6 * 0.18 - radial * 0.08, 0.03, 0.22);
-          signalContext.fillStyle = `rgba(102, 142, 245, ${alpha})`;
-          signalContext.fillText(glyph, offsetX + col * cellWidth, offsetY + row * cellHeight);
+      for (let i = 0; i < hRays; i++) {
+        const t = (i + 0.5) / hRays;
+        const ex = t * scene.width;
+        const dx0 = ex - cx, dy0 = -cy;
+        const len0 = Math.sqrt(dx0 * dx0 + dy0 * dy0);
+        rays.push({ ux: dx0 / len0, uy: dy0 / len0, maxDist: len0 });
+        const dx1 = ex - cx, dy1 = scene.height - cy;
+        const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+        rays.push({ ux: dx1 / len1, uy: dy1 / len1, maxDist: len1 });
+      }
+
+      for (let i = 0; i < vRays; i++) {
+        const t = (i + 0.5) / vRays;
+        const ey = t * scene.height;
+        const dx2 = -cx, dy2 = ey - cy;
+        const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+        rays.push({ ux: dx2 / len2, uy: dy2 / len2, maxDist: len2 });
+        const dx3 = scene.width - cx, dy3 = ey - cy;
+        const len3 = Math.sqrt(dx3 * dx3 + dy3 * dy3);
+        rays.push({ ux: dx3 / len3, uy: dy3 / len3, maxDist: len3 });
+      }
+
+      const rg = (ri, li) => {
+        const h = (ri * 7919 + li * 1301 + tick * 13) & 0x7fffffff;
+        return backgroundGlyphs[h % backgroundGlyphs.length];
+      };
+      const ra = (ri, li, base) => {
+        const h = (ri * 6271 + li * 1009 + tick * 17) & 0x7fffffff;
+        return base * (0.45 + 0.55 * ((h % 100) / 100));
+      };
+
+      rays.forEach((ray, ri) => {
+        for (let li = 0; li < layers; li++) {
+          // depth 0 = near screen edge, depth 1 = far (vanishing point)
+          // scroll drives glyphs flying toward viewer
+          const depth = 1 - ((li / layers) + scroll) % 1;
+          const dist = depth * ray.maxDist;
+          if (dist < 2) continue;
+
+          const x = cx + ray.ux * dist;
+          const y = cy + ray.uy * dist;
+
+          const nearness = 1 - depth;
+          const fontSize = Math.max(7, Math.round(baseSize * (0.3 + 0.7 * nearness)));
+          const baseAlpha = clamp(nearness * 1.1 - 0.05, 0.04, 0.95) *
+            (0.7 + 0.3 * Math.sin(time * 0.006 + ri * 1.37 + li * 0.5));
+          const r = Math.round(60  + nearness * 180);
+          const g = Math.round(120 + nearness * 130);
+          const b = Math.round(200 + nearness * 55);
+          const a = ra(ri, li, baseAlpha);
+
+          noiseContext.font = `${fontSize}px ${monoFont}`;
+          noiseContext.textBaseline = 'middle';
+          noiseContext.fillStyle = `rgba(${r},${g},${b},${a.toFixed(3)})`;
+          noiseContext.fillText(rg(ri, li), x, y);
         }
-      }
+      });
 
-      for (let band = 0; band < 4; band += 1) {
-        const y = ((time * 0.02 + band * scene.height * 0.22) % scene.height) - scaleMetric(18);
-        const bandGradient = signalContext.createLinearGradient(0, y, 0, y + scaleMetric(44));
-        bandGradient.addColorStop(0, 'rgba(255,255,255,0)');
-        bandGradient.addColorStop(0.5, 'rgba(154, 224, 255, 0.035)');
-        bandGradient.addColorStop(1, 'rgba(255,255,255,0)');
-        signalContext.fillStyle = bandGradient;
-        signalContext.fillRect(0, y, scene.width, scaleMetric(44));
-      }
+      // Dynamic radial fog — breathes in alpha and inner radius independently.
+      const fogBreath = 0.5 + 0.5 * Math.sin(time * 0.0019);
+      const fogPulse  = 0.5 + 0.5 * Math.sin(time * 0.0031 + 1.3);
+      const fogWaver  = 0.5 + 0.5 * Math.sin(time * 0.0013 + 2.7);
+      // Inner fog opacity pulses between very dim and moderately dim.
+      const fogAlpha0 = 0.10 + 0.12 * fogPulse;          // center: 0.10–0.22
+      const fogAlpha1 = 0.06 + 0.07 * fogBreath;          // mid:    0.06–0.13
+      // Inner radius breathes so the clear core expands/contracts visibly.
+      const fogInner  = Math.min(cx, cy) * (0.08 + 0.14 * fogWaver);
+      const fogOuter  = Math.max(cx, cy) * 1.6;           // always covers full canvas
+      const fog = noiseContext.createRadialGradient(cx, cy, fogInner, cx, cy, fogOuter);
+      fog.addColorStop(0,    `rgba(0,10,26,${fogAlpha0.toFixed(3)})`);
+      fog.addColorStop(0.25, `rgba(0,10,26,${fogAlpha1.toFixed(3)})`);
+      fog.addColorStop(0.6,  'rgba(0,10,26,0.02)');
+      fog.addColorStop(1,    'rgba(0,0,0,0)');
+      noiseContext.fillStyle = fog;
+      noiseContext.fillRect(0, 0, scene.width, scene.height);
+
+      signalContext.drawImage(noiseCanvas, 0, 0);
     };
 
     const drawGlowText = (text, x, y, fontSize, color, alpha = 1) => {
@@ -641,52 +726,36 @@ if (circuitBoard) {
 
     const drawCurvedSurface = (source, alpha = 1, offsetX = 0, curvature = 1) => {
       context.save();
-      drawRoundedRectPath(context, scaleMetric(8), scaleMetric(8), scene.width - scaleMetric(16), scene.height - scaleMetric(16), scaleMetric(28));
-      context.clip();
-      const step = 2;
+      context.globalAlpha = alpha;
+      const step = 4;
+      const sw = source.width;
       for (let y = 0; y < scene.height; y += step) {
         const ny = y / Math.max(scene.height - 1, 1);
         const centered = ny * 2 - 1;
-        const widthScale = 1 - 0.085 * curvature + 0.12 * curvature * centered * centered;
-        const sourceY = clamp(y + centered * centered * curvature * 6 - curvature * 2, 0, scene.height - step);
-        const destWidth = scene.width * widthScale;
-        const destX = (scene.width - destWidth) / 2 + offsetX;
-        context.globalAlpha = alpha;
-        context.drawImage(source, 0, sourceY, scene.width, step, destX, y, destWidth, step + 0.8);
+        // Concave: center rows wider (zoomed out), edges narrower (zoomed in).
+        const widthScale = 1 + 0.085 * curvature - 0.12 * curvature * centered * centered;
+        const sourceY = clamp(y - centered * centered * curvature * 6 + curvature * 2, 0, scene.height - step);
+        // Crop source inward instead of shrinking dest — fills edge-to-edge with no black arcs.
+        const srcW = clamp(sw * widthScale, 1, sw);
+        const srcX = clamp((sw - srcW) / 2 + offsetX, 0, sw - srcW);
+        context.drawImage(source, srcX, sourceY, srcW, step, 0, y, scene.width, step + 0.8);
       }
       context.restore();
     };
 
     const drawScanlines = (time) => {
+      if (!scene.scanlinePattern) return;
       context.save();
-      drawRoundedRectPath(context, scaleMetric(8), scaleMetric(8), scene.width - scaleMetric(16), scene.height - scaleMetric(16), scaleMetric(28));
-      context.clip();
-      context.fillStyle = 'rgba(0, 0, 0, 0.12)';
       const offset = Math.floor((time * 0.02) % 3);
-      for (let y = offset; y < scene.height; y += 3) {
-        context.fillRect(0, y, scene.width, 1);
-      }
+      context.translate(0, offset);
+      context.fillStyle = scene.scanlinePattern;
+      context.fillRect(0, -offset, scene.width, scene.height + 3);
       context.restore();
     };
 
     const drawVignette = () => {
-      const vignette = context.createRadialGradient(scene.width * 0.5, scene.height * 0.5, scene.width * 0.2, scene.width * 0.5, scene.height * 0.5, scene.width * 0.68);
-      vignette.addColorStop(0, 'rgba(255,255,255,0)');
-      vignette.addColorStop(1, 'rgba(0,0,0,0.52)');
       context.save();
-      drawRoundedRectPath(context, scaleMetric(8), scaleMetric(8), scene.width - scaleMetric(16), scene.height - scaleMetric(16), scaleMetric(28));
-      context.clip();
-      context.fillStyle = vignette;
-      context.fillRect(0, 0, scene.width, scene.height);
-      context.restore();
-    };
-
-    const drawDisplayBorder = () => {
-      context.save();
-      drawRoundedRectPath(context, scaleMetric(10), scaleMetric(10), scene.width - scaleMetric(20), scene.height - scaleMetric(20), scaleMetric(27));
-      context.strokeStyle = 'rgba(228, 250, 255, 0.24)';
-      context.lineWidth = scaleMetric(1.4);
-      context.stroke();
+      context.drawImage(vignetteCanvas, 0, 0, scene.width, scene.height);
       context.restore();
     };
 
@@ -696,20 +765,15 @@ if (circuitBoard) {
       const curvature = scene.reduced ? 1 : easeOutQuad(Math.min(elapsed / 3000, 1));
       const chromaShift = scene.reduced ? 0 : 3 * Math.exp(-elapsed / 750);
 
-      context.save();
-      context.globalAlpha = 0.22;
-      context.drawImage(signalCanvas, 0, 0, scene.width, scene.height);
-      context.restore();
-
-      drawCurvedSurface(signalCanvas, 0.92, 0, curvature);
+      drawCurvedSurface(signalCanvas, 1.0, 0, curvature);
 
       context.save();
       context.globalCompositeOperation = 'screen';
-      context.filter = `blur(${Math.round(scaleMetric(8))}px)`;
+      context.filter = `blur(${Math.round(scaleMetric(5))}px)`;
       drawCurvedSurface(bloomCanvas, 0.42, 0, curvature);
       context.restore();
 
-      if (!scene.reduced) {
+      if (!scene.reduced && chromaShift > 0.4) {
         context.save();
         context.globalCompositeOperation = 'screen';
         drawCurvedSurface(signalCanvas, 0.08, chromaShift, curvature);
@@ -719,7 +783,6 @@ if (circuitBoard) {
 
       drawScanlines(time);
       drawVignette();
-      drawDisplayBorder();
     };
 
     const recyclePanel = (panel, time) => {
