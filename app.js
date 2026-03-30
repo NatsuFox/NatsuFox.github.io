@@ -555,35 +555,164 @@ if (circuitBoard) {
       bloomContext.restore();
     };
 
-    const drawCpuZone = (time) => {
-      drawSignalWindow(signalContext, scene.cpu.x, scene.cpu.y, scene.cpu.width, scene.cpu.height, scene.cpu.radius, 1.2);
+    const drawHudCornerBrackets = (ctx, x, y, w, h, size, color) => {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = scaleMetric(1.5);
+      ctx.beginPath();
+      ctx.moveTo(x, y + size); ctx.lineTo(x, y); ctx.lineTo(x + size, y);
+      ctx.moveTo(x + w - size, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + size);
+      ctx.moveTo(x + w, y + h - size); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w - size, y + h);
+      ctx.moveTo(x + size, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - size);
+      ctx.stroke();
+      ctx.restore();
+    };
 
-      const pulse = (Math.sin(time * 0.0036) + 1) / 2;
+    const drawCpuZone = (time) => {
+      const { x, y, width: w, height: h } = scene.cpu;
+      const cx = x + w / 2;
+      const cy = y + h / 2;
+      const cut = scaleMetric(22);
+
+      // Angular HUD polygon fill
       signalContext.save();
-      signalContext.strokeStyle = `rgba(225, 250, 255, ${0.18 + pulse * 0.22})`;
-      signalContext.lineWidth = scaleMetric(1.1);
-      signalContext.strokeRect(scene.cpu.x + scaleMetric(14), scene.cpu.y + scaleMetric(14), scene.cpu.width - scaleMetric(28), scene.cpu.height - scaleMetric(28));
+      signalContext.beginPath();
+      signalContext.moveTo(x + cut, y);
+      signalContext.lineTo(x + w, y);
+      signalContext.lineTo(x + w, y + h - cut);
+      signalContext.lineTo(x + w - cut, y + h);
+      signalContext.lineTo(x, y + h);
+      signalContext.lineTo(x, y + cut);
+      signalContext.closePath();
+      signalContext.fillStyle = 'rgba(0, 4, 14, 0.88)';
+      signalContext.fill();
+      signalContext.strokeStyle = 'rgba(0, 220, 255, 0.52)';
+      signalContext.lineWidth = scaleMetric(1);
+      signalContext.stroke();
       signalContext.restore();
 
+      // Inner inset border
+      const ins = scaleMetric(6);
+      signalContext.save();
+      signalContext.beginPath();
+      signalContext.moveTo(x + cut + ins, y + ins);
+      signalContext.lineTo(x + w - ins, y + ins);
+      signalContext.lineTo(x + w - ins, y + h - cut - ins);
+      signalContext.lineTo(x + w - cut - ins, y + h - ins);
+      signalContext.lineTo(x + ins, y + h - ins);
+      signalContext.lineTo(x + ins, y + cut + ins);
+      signalContext.closePath();
+      signalContext.strokeStyle = 'rgba(0, 180, 200, 0.18)';
+      signalContext.lineWidth = scaleMetric(1);
+      signalContext.stroke();
+      signalContext.restore();
+
+      // Amber diagonal accent lines at cut corners
+      signalContext.save();
+      signalContext.strokeStyle = 'rgba(255, 160, 0, 0.72)';
+      signalContext.lineWidth = scaleMetric(1.2);
+      signalContext.beginPath();
+      signalContext.moveTo(x + cut, y); signalContext.lineTo(x, y + cut);
+      signalContext.moveTo(x + w - cut, y + h); signalContext.lineTo(x + w, y + h - cut);
+      signalContext.stroke();
+      signalContext.restore();
+
+      // Amber corner brackets
+      drawHudCornerBrackets(signalContext, x + scaleMetric(10), y + scaleMetric(10), w - scaleMetric(20), h - scaleMetric(20), scaleMetric(12), 'rgba(255, 160, 0, 0.82)');
+
+      // Rotating outer dashed ring
+      const ringAngle = (time * 0.00028) % (Math.PI * 2);
+      const ringR = Math.min(w, h) * 0.58;
+      signalContext.save();
+      signalContext.translate(cx, cy);
+      signalContext.rotate(ringAngle);
+      signalContext.strokeStyle = 'rgba(0, 180, 220, 0.16)';
+      signalContext.lineWidth = scaleMetric(1);
+      signalContext.setLineDash([scaleMetric(3), scaleMetric(10)]);
+      signalContext.beginPath();
+      signalContext.arc(0, 0, ringR, 0, Math.PI * 2);
+      signalContext.stroke();
+      signalContext.setLineDash([]);
+      signalContext.restore();
+
+      // Segmented arc gauges — left side
+      const gaugeR = scaleMetric(18);
+      const gaugeGap = scaleMetric(28);
+      const gaugeX = x - scaleMetric(30);
+      for (let i = 0; i < 3; i++) {
+        const gy = y + h * 0.22 + i * gaugeGap;
+        const sweep = ((time * 0.0014 + i * 0.7) % 1);
+        signalContext.save();
+        signalContext.strokeStyle = 'rgba(0, 200, 255, 0.22)';
+        signalContext.lineWidth = scaleMetric(2.5);
+        signalContext.beginPath();
+        signalContext.arc(gaugeX, gy, gaugeR, -Math.PI * 0.7, Math.PI * 0.7);
+        signalContext.stroke();
+        signalContext.strokeStyle = 'rgba(0, 220, 255, 0.82)';
+        signalContext.beginPath();
+        signalContext.arc(gaugeX, gy, gaugeR, -Math.PI * 0.7, -Math.PI * 0.7 + Math.PI * 1.4 * sweep);
+        signalContext.stroke();
+        signalContext.restore();
+      }
+
+      // Segmented arc gauges — right side
+      const gaugeX2 = x + w + scaleMetric(30);
+      for (let i = 0; i < 3; i++) {
+        const gy = y + h * 0.22 + i * gaugeGap;
+        const sweep = ((time * 0.0017 + i * 0.9 + 0.3) % 1);
+        signalContext.save();
+        signalContext.strokeStyle = 'rgba(0, 200, 255, 0.22)';
+        signalContext.lineWidth = scaleMetric(2.5);
+        signalContext.beginPath();
+        signalContext.arc(gaugeX2, gy, gaugeR, Math.PI * 0.3, Math.PI * 1.7);
+        signalContext.stroke();
+        signalContext.strokeStyle = 'rgba(0, 220, 255, 0.82)';
+        signalContext.beginPath();
+        signalContext.arc(gaugeX2, gy, gaugeR, Math.PI * 0.3, Math.PI * 0.3 + Math.PI * 1.4 * sweep);
+        signalContext.stroke();
+        signalContext.restore();
+      }
+
+      // Horizontal scan sweep
+      const scanPeriod = 3200;
+      const scanT = (time % scanPeriod) / scanPeriod;
+      const scanY = y + scanT * h;
+      signalContext.save();
+      signalContext.beginPath();
+      signalContext.rect(x, y, w, h);
+      signalContext.clip();
+      const scanGrad = signalContext.createLinearGradient(0, scanY - scaleMetric(14), 0, scanY + scaleMetric(2));
+      scanGrad.addColorStop(0, 'rgba(0,230,255,0)');
+      scanGrad.addColorStop(1, 'rgba(0,230,255,0.06)');
+      signalContext.fillStyle = scanGrad;
+      signalContext.fillRect(x, scanY - scaleMetric(14), w, scaleMetric(16));
+      signalContext.strokeStyle = 'rgba(0, 230, 255, 0.22)';
+      signalContext.lineWidth = scaleMetric(1);
+      signalContext.beginPath();
+      signalContext.moveTo(x, scanY); signalContext.lineTo(x + w, scanY);
+      signalContext.stroke();
+      signalContext.restore();
+
+      // Text
       signalContext.save();
       signalContext.font = `${Math.round(scaleMetric(11))}px ${monoFont}`;
       signalContext.textBaseline = 'top';
-      signalContext.fillStyle = 'rgba(205, 245, 255, 0.94)';
-      signalContext.fillText('[ SIGNAL PROCESSOR ]', scene.cpu.x + scaleMetric(18), scene.cpu.y + scaleMetric(18));
-      drawGlowText('[ SIGNAL PROCESSOR ]', scene.cpu.x + scaleMetric(18), scene.cpu.y + scaleMetric(18), scaleMetric(11), 'rgba(220, 250, 255, 0.9)', 0.9);
+      signalContext.fillStyle = 'rgba(255, 160, 0, 0.90)';
+      signalContext.fillText('[ NF :: HUD ACTIVE ]', x + scaleMetric(18), y + scaleMetric(16));
+      drawGlowText('[ NF :: HUD ACTIVE ]', x + scaleMetric(18), y + scaleMetric(16), scaleMetric(11), 'rgba(255,160,0,0.8)', 0.7);
 
       const lineHeight = scaleMetric(20);
       signalContext.font = `${Math.round(scaleMetric(16))}px ${monoFont}`;
-      signalContext.fillStyle = 'rgba(240, 252, 255, 0.98)';
+      signalContext.fillStyle = 'rgba(0, 230, 255, 0.92)';
       cpuLines.forEach((line, index) => {
-        const y = scene.cpu.y + scaleMetric(52) + index * lineHeight;
-        signalContext.fillText(line, scene.cpu.x + scaleMetric(18), y);
-        drawGlowText(line, scene.cpu.x + scaleMetric(18), y, scaleMetric(16), 'rgba(210, 249, 255, 1)', 0.78);
+        const ly = y + scaleMetric(50) + index * lineHeight;
+        signalContext.fillText(line, x + scaleMetric(18), ly);
+        if (index === 0) drawGlowText(line, x + scaleMetric(18), ly, scaleMetric(16), 'rgba(0,220,255,1)', 0.6);
       });
 
       signalContext.font = `${Math.round(scaleMetric(9.6))}px ${monoFont}`;
-      signalContext.fillStyle = 'rgba(184, 236, 255, 0.72)';
-      signalContext.fillText('[ CURVED / CHROMA / SCAN ]', scene.cpu.x + scaleMetric(18), scene.cpu.y + scene.cpu.height - scaleMetric(30));
+      signalContext.fillStyle = 'rgba(0, 180, 220, 0.55)';
+      signalContext.fillText('[ CORRIDOR / HUD / SIGNAL ]', x + scaleMetric(18), y + h - scaleMetric(28));
       signalContext.restore();
     };
 
@@ -594,32 +723,71 @@ if (circuitBoard) {
       const revealProgress = panel.revealed ? (staticMode ? 1 : clamp((time - panel.revealedAt) / 260, 0, 1)) : 0;
       const lines = revealProgress >= 0.98 ? panel.lines : panel.noiseLines;
 
+      const { left: px, top: py, width: pw, height: ph } = panel;
+      const pcut = scaleMetric(14);
+
       signalContext.save();
       signalContext.globalAlpha = alpha;
       signalContext.translate(0, mix(scaleMetric(10), 0, alpha));
-      drawSignalWindow(signalContext, panel.left, panel.top, panel.width, panel.height, scaleMetric(16), 0.9);
 
+      // Angular HUD panel frame
+      signalContext.beginPath();
+      signalContext.moveTo(px, py);
+      signalContext.lineTo(px + pw - pcut, py);
+      signalContext.lineTo(px + pw, py + pcut);
+      signalContext.lineTo(px + pw, py + ph);
+      signalContext.lineTo(px, py + ph);
+      signalContext.closePath();
+      signalContext.fillStyle = 'rgba(0, 4, 14, 0.82)';
+      signalContext.fill();
+      signalContext.strokeStyle = 'rgba(0, 190, 220, 0.38)';
+      signalContext.lineWidth = scaleMetric(1);
+      signalContext.stroke();
+
+      // Amber diagonal accent at cut corner
+      signalContext.strokeStyle = 'rgba(255, 160, 0, 0.72)';
+      signalContext.lineWidth = scaleMetric(1.2);
+      signalContext.beginPath();
+      signalContext.moveTo(px + pw - pcut, py);
+      signalContext.lineTo(px + pw, py + pcut);
+      signalContext.stroke();
+
+      // Cyan top border rule under label
+      const ruleY = py + scaleMetric(26);
+      const ruleGrad = signalContext.createLinearGradient(px, ruleY, px + pw, ruleY);
+      ruleGrad.addColorStop(0, 'rgba(0, 190, 220, 0.50)');
+      ruleGrad.addColorStop(0.7, 'rgba(0, 190, 220, 0.12)');
+      ruleGrad.addColorStop(1, 'rgba(0, 190, 220, 0)');
+      signalContext.strokeStyle = ruleGrad;
+      signalContext.lineWidth = scaleMetric(0.8);
+      signalContext.beginPath();
+      signalContext.moveTo(px + scaleMetric(8), ruleY);
+      signalContext.lineTo(px + pw - scaleMetric(8), ruleY);
+      signalContext.stroke();
+
+      // Label — amber
       signalContext.font = `${Math.round(scaleMetric(9.2))}px ${monoFont}`;
       signalContext.textBaseline = 'top';
-      signalContext.fillStyle = 'rgba(214, 248, 255, 0.98)';
-      signalContext.fillText(panel.label, panel.left + scaleMetric(14), panel.top + scaleMetric(12));
+      signalContext.fillStyle = 'rgba(255, 160, 0, 0.85)';
+      signalContext.fillText(panel.label, px + scaleMetric(10), py + scaleMetric(10));
 
-      const artY = panel.top + scaleMetric(31);
+      // Art lines — cyan
+      const artY = py + scaleMetric(31);
       signalContext.font = `${Math.round(scaleMetric(12.4))}px ${monoFont}`;
-      signalContext.fillStyle = panel.revealed ? 'rgba(245, 253, 255, 1)' : 'rgba(202, 244, 255, 0.94)';
+      signalContext.fillStyle = panel.revealed ? 'rgba(0, 220, 255, 0.90)' : 'rgba(0, 200, 240, 0.80)';
       lines.forEach((line, index) => {
-        const y = artY + index * scaleMetric(15);
-        signalContext.fillText(line, panel.left + scaleMetric(14), y);
+        const ly = artY + index * scaleMetric(15);
+        signalContext.fillText(line, px + scaleMetric(10), ly);
         if (panel.revealed) {
-          drawGlowText(line, panel.left + scaleMetric(14), y, scaleMetric(12.4), 'rgba(214, 249, 255, 1)', 0.64);
+          drawGlowText(line, px + scaleMetric(10), ly, scaleMetric(12.4), 'rgba(0,220,255,1)', 0.55);
         }
       });
 
       if (panel.revealed && revealProgress < 1) {
-        signalContext.globalAlpha = 1 - revealProgress;
-        signalContext.fillStyle = 'rgba(180, 238, 255, 0.78)';
+        signalContext.globalAlpha = (1 - revealProgress) * alpha;
+        signalContext.fillStyle = 'rgba(0, 190, 220, 0.70)';
         panel.noiseLines.forEach((line, index) => {
-          signalContext.fillText(line, panel.left + scaleMetric(14), artY + index * scaleMetric(15));
+          signalContext.fillText(line, px + scaleMetric(10), artY + index * scaleMetric(15));
         });
       }
       signalContext.restore();
@@ -634,17 +802,17 @@ if (circuitBoard) {
           const distance = Math.min(Math.abs(index - sweep), pins.length - Math.abs(index - sweep));
           const intensity = clamp(1 - distance / 2.4, 0.16, 1);
           signalContext.save();
-          signalContext.fillStyle = `rgba(213, 246, 255, ${0.12 + intensity * 0.18})`;
+          signalContext.fillStyle = `rgba(0, 210, 255, ${0.12 + intensity * 0.18})`;
           signalContext.fillRect(pin.x - pin.width / 2, pin.y - pin.height / 2, pin.width, pin.height);
           signalContext.font = `${Math.round(scaleMetric(8))}px ${monoFont}`;
           signalContext.textBaseline = 'middle';
-          signalContext.fillStyle = `rgba(224, 251, 255, ${0.16 + intensity * 0.44})`;
+          signalContext.fillStyle = `rgba(0, 230, 255, ${0.16 + intensity * 0.44})`;
           signalContext.fillText(side === 'top' || side === 'bottom' ? '=' : '|', pin.x - scaleMetric(2.5), pin.y - scaleMetric(3));
           signalContext.restore();
 
           if (intensity > 0.5) {
             bloomContext.save();
-            bloomContext.fillStyle = 'rgba(220, 250, 255, 0.95)';
+            bloomContext.fillStyle = 'rgba(0, 220, 255, 0.95)';
             bloomContext.globalAlpha = 0.18 + intensity * 0.28;
             bloomContext.fillRect(pin.x - pin.width / 2, pin.y - pin.height / 2, pin.width, pin.height);
             bloomContext.restore();
