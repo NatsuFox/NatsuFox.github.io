@@ -1,0 +1,189 @@
+{
+  "version": "terminal-content-protocol/1.0",
+  "capabilities": ["text", "image", "theme", "command-list"],
+  "cache": {
+    "ttlMs": 2700000,
+    "maxEntries": 36
+  },
+  "schema": {
+    "command": "A slash command route, for example /about or /products.",
+    "route": "{ label: string, summary?: string, blocks: TerminalBlock[] }",
+    "blocks": {
+      "text": "{ type: \"text\", lines: string[], speed?: \"fast\", instant?: boolean }",
+      "image": "{ type: \"image\", src: string, alt?: string, caption?: string, maxColumns?: number, maxRows?: number }",
+      "theme": "{ type: \"theme\" }",
+      "status": "{ type: \"status\" }",
+      "commandList": "{ type: \"command-list\" }"
+    },
+    "imageRenderer": "canvas pixel sampling -> reduced columns/rows -> brightness glyphs -> sampled RGB phosphor color"
+  },
+  "themes": {
+    "aurora": {
+      "label": "Aurora Signal",
+      "description": "Cyan glass, warm amber telemetry, and soft magenta noise.",
+      "vars": {
+        "--terminal-bg-a": "rgba(0,12,20,.96)",
+        "--terminal-bg-b": "rgba(0,5,12,.94)",
+        "--terminal-fg": "#d5ffff",
+        "--terminal-muted": "#7fdfe6",
+        "--terminal-accent": "#7df9ff",
+        "--terminal-warm": "#ffbd66",
+        "--terminal-hot": "#ff6d93",
+        "--terminal-user": "#ffd58a",
+        "--terminal-border": "rgba(125,250,255,.72)",
+        "--terminal-shadow": "rgba(0,238,255,.2)"
+      }
+    },
+    "ember": {
+      "label": "Ember Relay",
+      "description": "Amber phosphor over charcoal with teal secondary traces.",
+      "vars": {
+        "--terminal-bg-a": "rgba(20,12,4,.96)",
+        "--terminal-bg-b": "rgba(5,7,9,.95)",
+        "--terminal-fg": "#ffe9bd",
+        "--terminal-muted": "#e0b46d",
+        "--terminal-accent": "#65f0d6",
+        "--terminal-warm": "#ffb24d",
+        "--terminal-hot": "#ff6f4d",
+        "--terminal-user": "#92ffe6",
+        "--terminal-border": "rgba(255,183,77,.74)",
+        "--terminal-shadow": "rgba(255,156,54,.2)"
+      }
+    },
+    "jade": {
+      "label": "Jade Vector",
+      "description": "Green CRT text with brass accents and deep graphite base.",
+      "vars": {
+        "--terminal-bg-a": "rgba(4,17,12,.97)",
+        "--terminal-bg-b": "rgba(3,7,8,.96)",
+        "--terminal-fg": "#d8ffe5",
+        "--terminal-muted": "#8ee7b4",
+        "--terminal-accent": "#72ff9f",
+        "--terminal-warm": "#e9c46a",
+        "--terminal-hot": "#ff7a5f",
+        "--terminal-user": "#f7d98a",
+        "--terminal-border": "rgba(114,255,159,.68)",
+        "--terminal-shadow": "rgba(88,255,140,.2)"
+      }
+    },
+    "ion": {
+      "label": "Ion Bloom",
+      "description": "Electric blue foreground with lemon and coral interference.",
+      "vars": {
+        "--terminal-bg-a": "rgba(5,9,23,.97)",
+        "--terminal-bg-b": "rgba(1,3,12,.95)",
+        "--terminal-fg": "#dbe7ff",
+        "--terminal-muted": "#9bb7ff",
+        "--terminal-accent": "#6ecbff",
+        "--terminal-warm": "#f3f174",
+        "--terminal-hot": "#ff7b7b",
+        "--terminal-user": "#f3f174",
+        "--terminal-border": "rgba(110,203,255,.72)",
+        "--terminal-shadow": "rgba(95,142,255,.22)"
+      }
+    }
+  },
+  "commands": {
+    "/theme": {
+      "label": "Theme Selector",
+      "summary": "Select or inspect terminal color schemes.",
+      "blocks": [
+        { "type": "theme" }
+      ]
+    },
+    "/help": {
+      "label": "Command Index",
+      "summary": "List every mounted terminal route.",
+      "blocks": [
+        { "type": "text", "speed": "fast", "lines": ["COMMAND INDEX", "Each route is rendered inside this terminal. No page navigation is required."] },
+        { "type": "command-list" }
+      ]
+    },
+    "/protocol": {
+      "label": "Protocol",
+      "summary": "Show the command-to-content protocol contract.",
+      "contentUrl": "data/terminal-content/protocol.json",
+      "blocks": [
+        { "type": "text", "speed": "fast", "lines": ["PROTOCOL / terminal-content-protocol/1.0", "This terminal loads command content from data/terminal-protocol.json."] },
+        { "type": "text", "speed": "fast", "lines": [
+          "route       -> { label, summary?, blocks }",
+          "block.text  -> { type: \"text\", lines }",
+          "block.image -> { type: \"image\", src, alt?, caption?, maxColumns?, maxRows? }",
+          "block.theme -> { type: \"theme\" }",
+          "Image blocks sample source pixels on a canvas, reduce resolution, map brightness to glyphs, and keep sampled color as phosphor tint.",
+          "Runtime API -> window.NatsuFoxTerminalProtocol.registerCommand(\"/route\", { label, summary, blocks })",
+          "Introspection -> window.NatsuFoxTerminalProtocol.describe() returns schema, routes, themes, artifact path, and cache policy."
+        ] }
+      ]
+    },
+    "/about": {
+      "label": "About",
+      "summary": "Render the root-domain organization profile.",
+      "contentUrl": "data/terminal-content/about.json",
+      "blocks": [
+        { "type": "text", "lines": ["ABOUT / NatsuFox", "Root-domain signal processor for AI-native systems, project surfaces, and experimental interface work."] },
+        { "type": "text", "lines": ["The site is intentionally terminal-first: corporate page sections are modeled as commands and rendered as CRT output."] },
+        { "type": "image", "src": "assets/social-root.png", "alt": "NatsuFox root-domain social card", "maxColumns": 58, "caption": "root signal card sampled into terminal phosphor" }
+      ]
+    },
+    "/products": {
+      "label": "Products",
+      "summary": "Render product and project entries.",
+      "contentUrl": "data/terminal-content/products.json",
+      "blocks": [
+        { "type": "text", "speed": "fast", "lines": ["PRODUCT LIST", "Tapestry      Knowledge-base ingestion and viewer surface.", "A-Stockit     Market signal workspace and project landing surface.", "NatsuFox.io   Root routing layer for the broader project constellation."] },
+        { "type": "image", "src": "assets/social-tapestry.png", "alt": "Tapestry project preview", "maxColumns": 54, "caption": "project card / tapestry" }
+      ]
+    },
+    "/careers": {
+      "label": "Careers",
+      "summary": "Render collaboration and role guidance.",
+      "contentUrl": "data/terminal-content/careers.json",
+      "blocks": [
+        { "type": "text", "lines": ["CAREERS / SUPPORT ROLES", "Open collaboration is framed as protocol design, interface experiments, evaluation, documentation, and field testing."] },
+        { "type": "text", "lines": ["Current priority: builders who can keep strong visual taste while preserving operational clarity."] }
+      ]
+    },
+    "/support": {
+      "label": "Support",
+      "summary": "Render support and regression-report guidance.",
+      "contentUrl": "data/terminal-content/support.json",
+      "blocks": [
+        { "type": "text", "lines": ["SUPPORT", "For project questions, start from the linked GitHub repositories and issue trackers.", "For site routing or visual regressions, capture the command, viewport, and the visible terminal state."] }
+      ]
+    },
+    "/partners": {
+      "label": "Partners",
+      "summary": "Render partnership model and project media.",
+      "contentUrl": "data/terminal-content/partners.json",
+      "blocks": [
+        { "type": "text", "lines": ["PARTNERS", "The collaboration surface is modular: each project can expose a route, media card, and terminal protocol entry without requiring a separate page."] },
+        { "type": "image", "src": "assets/social-astockit.png", "alt": "A-Stockit project preview", "maxColumns": 54, "caption": "project card / a-stockit" }
+      ]
+    },
+    "/contact": {
+      "label": "Contact",
+      "summary": "Render contact links.",
+      "contentUrl": "data/terminal-content/contact.json",
+      "blocks": [
+        { "type": "text", "lines": ["CONTACT", "GitHub: https://github.com/NatsuFox", "Root:   https://natsufox.github.io/"] }
+      ]
+    },
+    "/image": {
+      "label": "Image Raster",
+      "summary": "Demonstrate colored image-to-glyph rendering.",
+      "contentUrl": "data/terminal-content/image.json",
+      "blocks": [
+        { "type": "text", "speed": "fast", "lines": ["IMAGE RASTER DEMO", "The renderer below reads the source pixels, downsamples resolution, and maps color plus brightness into terminal glyph cells."] },
+        { "type": "image", "src": "assets/social-root.png", "alt": "NatsuFox root-domain social card", "maxColumns": 64, "caption": "sampled from assets/social-root.png" }
+      ]
+    },
+    "/status": {
+      "label": "Status",
+      "summary": "Render runtime telemetry and cache status.",
+      "blocks": [
+        { "type": "status" }
+      ]
+    }
+  }
+}

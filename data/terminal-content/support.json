@@ -1,0 +1,5 @@
+{
+  "blocks": [
+    { "type": "text", "lines": ["SUPPORT", "For project questions, start from the linked GitHub repositories and issue trackers.", "For site routing or visual regressions, capture the command, viewport, and the visible terminal state."] }
+  ]
+}

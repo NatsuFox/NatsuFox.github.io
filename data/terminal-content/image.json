@@ -1,0 +1,6 @@
+{
+  "blocks": [
+    { "type": "text", "speed": "fast", "lines": ["IMAGE RASTER DEMO", "The renderer below reads the source pixels, downsamples resolution, and maps color plus brightness into terminal glyph cells."] },
+    { "type": "image", "src": "assets/social-root.png", "alt": "NatsuFox root-domain social card", "maxColumns": 64, "caption": "sampled from assets/social-root.png" }
+  ]
+}

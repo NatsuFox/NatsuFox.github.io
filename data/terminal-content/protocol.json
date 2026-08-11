@@ -1,0 +1,14 @@
+{
+  "blocks": [
+    { "type": "text", "speed": "fast", "lines": ["PROTOCOL / terminal-content-protocol/1.0", "This terminal loads command metadata from data/terminal-protocol.json and route bodies from data/terminal-content/*.json."] },
+    { "type": "text", "speed": "fast", "lines": [
+      "route       -> { label, summary?, contentUrl?, blocks }",
+      "block.text  -> { type: \"text\", lines }",
+      "block.image -> { type: \"image\", src, alt?, caption?, maxColumns?, maxRows? }",
+      "block.theme -> { type: \"theme\" }",
+      "Image blocks sample source pixels on a canvas, reduce resolution, map brightness to glyphs, and keep sampled color as phosphor tint.",
+      "Runtime API -> window.NatsuFoxTerminalProtocol.registerCommand(\"/route\", { label, summary, blocks })",
+      "Introspection -> window.NatsuFoxTerminalProtocol.describe() returns schema, routes, themes, artifact path, and cache policy."
+    ] }
+  ]
+}

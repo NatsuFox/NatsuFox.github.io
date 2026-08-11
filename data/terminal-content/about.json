@@ -1,0 +1,7 @@
+{
+  "blocks": [
+    { "type": "text", "lines": ["ABOUT / NatsuFox", "Root-domain signal processor for AI-native systems, project surfaces, and experimental interface work."] },
+    { "type": "text", "lines": ["The site is intentionally terminal-first: corporate page sections are modeled as commands and rendered as CRT output."] },
+    { "type": "image", "src": "assets/social-root.png", "alt": "NatsuFox root-domain social card", "maxColumns": 58, "caption": "root signal card sampled into terminal phosphor" }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "blocks": [
+    { "type": "text", "speed": "fast", "lines": ["PRODUCT LIST", "Tapestry      Knowledge-base ingestion and viewer surface.", "A-Stockit     Market signal workspace and project landing surface.", "NatsuFox.io   Root routing layer for the broader project constellation."] },
+    { "type": "image", "src": "assets/social-tapestry.png", "alt": "Tapestry project preview", "maxColumns": 54, "caption": "project card / tapestry" }
+  ]
+}

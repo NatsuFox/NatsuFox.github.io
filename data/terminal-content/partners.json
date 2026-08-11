@@ -1,0 +1,6 @@
+{
+  "blocks": [
+    { "type": "text", "lines": ["PARTNERS", "The collaboration surface is modular: each project can expose a route, media card, and terminal protocol entry without requiring a separate page."] },
+    { "type": "image", "src": "assets/social-astockit.png", "alt": "A-Stockit project preview", "maxColumns": 54, "caption": "project card / a-stockit" }
+  ]
+}
